@@ -1,8 +1,3 @@
-**✅ ¡Listo, Miguel!**  
-
-Aquí tenés el **README.md completo, profesional, honesto y atractivo** con tu logo de **AXIS**, badges y todo.  
-
-Copia y pega **exactamente** esto en tu archivo `README.md`:
 
 ```markdown
 ![AXIS Logo](axis-logo.png)

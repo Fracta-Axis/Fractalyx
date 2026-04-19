@@ -1,6 +1,6 @@
 
 ```markdown
-![AXIS Logo](axis-logo.png)
+![AXIS Logo](image-8.jpg)
 
 <div align="center">
 

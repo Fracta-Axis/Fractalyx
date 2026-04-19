@@ -16,13 +16,13 @@
 
 ### Badges
 
-![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
-![Status: Experimental](https://img.shields.io/badge/Status-Experimental-orange?style=flat-square)
-![MFSU + TEG](https://img.shields.io/badge/Inspired_by-TEG_%2B_MFSU-8B00FF?style=flat-square)
+### Badges
 
----
-
+![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white&style=for-the-badge)
+![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-000000?logo=apache&logoColor=white&style=for-the-badge)
+![Status: Experimental](https://img.shields.io/badge/Status-Experimental-orange?style=for-the-badge)
+![MFSU Powered](https://img.shields.io/badge/MFSU-Powered_by_δ_F%3D0.921-00b8ff?style=for-the-badge)
+![AXIS Vault v3.0](https://img.shields.io/badge/AXIS_Vault-v3.0-00b8ff?style=for-the-badge)
 ### ¿Qué es AXIS?
 
 **AXIS** es un vault criptográfico experimental que genera claves y patrones de confusión usando dinámicas fractales reales derivadas del **Modelo Fractal Estocástico Unificado (MFSU)** y del axioma tetraédrico de **Tetrahedral Emergent Gravity (TEG)**.

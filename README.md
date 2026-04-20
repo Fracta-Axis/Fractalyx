@@ -14,7 +14,7 @@ Powered by the Unified Fractal-Stochastic Model (MFSU)
 
 ---
 
-### Badges
+
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white&style=for-the-badge)](https://www.python.org)
 [![License](https://img.shields.io/badge/License-Apache_2.0-000000?logo=apache&logoColor=white&style=for-the-badge)](LICENSE)

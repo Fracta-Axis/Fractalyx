@@ -1,101 +1,157 @@
 
-```markdown
-[![AXIS Logo]](image-8.jpg)
+
+markdown
+[![AXIS Logo](https://github.com/Fracta-Axis/Axis/blob/main/image-8.jpg)](https://github.com/Fracta-Axis/Axis)
 
 <div align="center">
 
-# **AXIS**  
-**by Fracta**  
-**MFSU Vault v3.0**
+# **AXIS Vault**  
+**MFSU-Crypt + FractalShield**  
+**v3.0**
 
-**Criptografía inspirada en la geometría del vacío cuántico**
+**Next-generation fractal-stochastic cryptography**  
+Powered by the Unified Fractal-Stochastic Model (MFSU)
 
 </div>
 
+---
+
 ### Badges
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white&style=for-the-badge)]
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-000000?logo=apache&logoColor=white&style=for-the-badge)]
-[![Status: Experimental]](https://img.shields.io/badge/Status-Experimental-orange?style=for-the-badge)]
-[![MFSU Powered](https://img.shields.io/badge/MFSU-Powered_by_δ_F%3D0.921-00b8ff?style=for-the-badge)]
-[![AXIS Vault v3.0](https://img.shields.io/badge/AXIS_Vault-v3.0-00b8ff?style=for-the-badge)]
-### ¿Qué es AXIS?
-
-**AXIS** es un vault criptográfico experimental que genera claves y patrones de confusión usando dinámicas fractales reales derivadas del **Modelo Fractal Estocástico Unificado (MFSU)** y del axioma tetraédrico de **Tetrahedral Emergent Gravity (TEG)**.
-
-En lugar de usar solo funciones hash tradicionales, AXIS simula un pequeño sistema físico inspirado en la estructura más eficiente que parece elegir el vacío cuántico: coordinación tetraédrica, dimensión efectiva \(D_{\rm eff} = \ln 8\) y codimensión holográfica \(\delta \approx 0.921\).
-
-El resultado es un **KDF memory-hard** con comportamiento fractal auto-similar, pensado para ser conceptualmente distinto y resistente.
-
----
-## 🧪 El Algoritmo (MFSU)
-Nuestra tecnología utiliza una semilla fractal que evoluciona con el tiempo y el ruido del sistema, haciendo que la clave de encriptación sea prácticamente imposible de predecir mediante métodos convencionales.
-
-### Características principales
-
-- Dinámica MFSU: Laplaciano fraccional + ruido con exponente de Hurst del CMB
-- KDF memory-hard con scratchpad de 8 MB y acceso fractal impredecible
-- Whitening con SHA3-256 + MAC para verificar integridad
-- Normalización anti-timing-attack
-- Formato de archivo `.fracta` con metadata clara
-- Interfaz web fácil con Streamlit y modo CLI
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white&style=for-the-badge)](https://www.python.org)
+[![License](https://img.shields.io/badge/License-Apache_2.0-000000?logo=apache&logoColor=white&style=for-the-badge)](LICENSE)
+[![Experimental](https://img.shields.io/badge/Status-Experimental-orange?style=for-the-badge)]()
+[![MFSU Powered](https://img.shields.io/badge/MFSU-δF%3D0.921-00b8ff?style=for-the-badge)]()
+[![FractalShield](https://img.shields.io/badge/FractalShield-v4-00b8ff?style=for-the-badge)]()
 
 ---
 
-### Cómo probarlo (muy fácil)
+## What is AXIS Vault?
 
-#### 1. Interfaz web (recomendada)
+**AXIS Vault** is a complete symmetric cryptographic system built around a single physically-motivated equation: the **Unified Fractal-Stochastic Model (MFSU)**.
 
-```bash
-pip install streamlit numpy scipy
-streamlit run fracts_vault.py
-```
+All primitives — KDF, stream cipher, hash, TOTP and the revolutionary **FractalShield** defense — derive from the same SPDE:
 
-#### 2. Uso desde terminal
+$$
+\frac{\partial \psi}{\partial t} = -\delta_F (-\Delta)^{\beta/2} \psi + \gamma |\psi|^2 \psi + \sigma \eta(x,t)
+$$
 
-```bash
-python fracts_vault.py --help
-```
+with $\delta_F = 0.921$, $\beta = 1.079$, $\gamma = \delta_F$, $H = 0.541$.
 
-**Ejemplos:**
-```bash
-# Encriptar
-python fracts_vault.py --encrypt miarchivo.pdf --password MiContraseñaSegura123
+### The Star Innovation: FractalShield
+The first documented **oracle-free, geometrically escalating layered encryption** for offline files.
 
-# Desencriptar
-python fracts_vault.py --decrypt miarchivo.pdf.fracta --password MiContraseñaSegura123
-```
+- No verification oracle (attacker never knows if the password is correct until they check every layer)
+- Attacker cost grows **3.5× / 7.5× / 15.5×** per protection level
+- All layers are statistically indistinguishable
+- Everything emerges from the same MFSU field
 
 ---
 
-### ⚠️ Advertencia importante
+## Architecture
 
-Este es un **proyecto experimental y de investigación**.  
-No ha sido auditado formalmente por criptógrafos profesionales.  
-**No lo uses para proteger información crítica o valiosa** hasta que tenga una revisión de seguridad independiente.
+### 1. Core MFSU Solver
+```mermaid
+flowchart TD
+    A[Password + Salt] --> B[SHA3-512 → Initial ψ]
+    B --> C[Scratchpad Fill\nKDF_M steps]
+    C --> D[Non-linear Mixing\nState-dependent access]
+    D --> E[Condensation + HKDF-Expand]
+    E --> F[96-byte Derived Key]
+    subgraph MFSU Core
+        G[Fractional Laplacian\nβ = 1.079]
+        H[Fractional Gaussian Noise\nH = 0.541]
+        I[Non-linear term + Normalization]
+    end
+    C -.-> G & H & I
 
----
+2. FractalShield Layered Defensemermaid
+flowchart TD
+    P[Password] --> KDF[KDF_M = 256]
+    KDF --> Real[Real Layer\nMFSU\x04 + Plaintext]
+    KDF --> D1[Decoy Layer 1\nKDF_M = 512]
+    KDF --> D2[Decoy Layer 2\nKDF_M = 1024]
+    KDF --> Dn[Decoy Layer N\nKDF_M = 4096]
+    
+    subgraph Layers [All layers identical size & statistics]
+        Real
+        D1
+        D2
+        Dn
+    end
+    
+    Layers --> Shuffle[Fractal Shuffle\nORDER_ENC encrypted with real key]
+    Shuffle --> File[.fracta v4 File\n+ Global HMAC-SHA3-256]
+    
+    style Real fill:#00b8ff,stroke:#fff
 
-### Filosofía
+Key FeaturesMemory-hard KDF with 8 MB fractal scratchpad (scalable)
+Oracle-free verification via FractalShield
+Geometric cost escalation (attacker pays up to 15.5× more)
+Stream cipher with SHA3-256 whitening + avalanche > 49%
+Merkle-Damgård fractal hash
+TOTP 2FA integrated
+Constant-time normalization (timing-attack resistant)
+CLI + beautiful Streamlit web UI
+File format .fracta v4 (fully documented)
 
-AXIS nace de la idea de que la geometría más eficiente del universo para almacenar y proteger información es la misma que el vacío cuántico parece elegir según TEG.
+Installationbash
+git clone https://github.com/Fracta-Axis/Axis.git
+cd Axis
+pip install -r requirements.txt
 
-No es solo otro algoritmo de encriptación. Es un intento de llevar principios físicos profundos (entropía holográfica y fractalidad auto-similar) al mundo de la criptografía práctica.
+Quick StartWeb Interface (recommended)bash
+streamlit run ui/fracts_vault.py
 
----
+CLIbash
+# Encrypt with Maximum protection
+python -m cli --encrypt secret.pdf --password "MiContraseñaMuySegura123" --level 3
 
-### Licencia
+# Decrypt
+python -m cli --decrypt secret.pdf.fracta --password "MiContraseñaMuySegura123"
 
-MIT License — puedes usar, modificar y distribuir libremente.
+Security & PerformanceProtection Level
+Layers
+User Time
+Attacker Cost
+Use Case
+Standard
+3
+~0.5 s
+3.5×
+Personal files
+Enhanced
+4
+~0.7 s
+7.5×
+Contracts & credentials
+Maximum
+5
+~1.3 s
+15.5×
+Critical / legal data
 
----
+Important Disclaimer
+This is an experimental research project.
+It has not received formal cryptographic audit.
+Do not use it to protect valuable or sensitive information until independent review is complete.Roadmap to Certification (from the paper)Phase 1 (2026): Full NIST STS, arXiv preprint, public cryptanalysis
+Phase 2 (2027): Formal IND-CPA / IND-CCA2 proofs + memory-hardness DAG
+Phase 3 (2028): NIST-style submission & mobile ports
+
+LinksFull Paper v2.0 (MFSU-Crypt + FractalShield): Zenodo
+FractalShield module: `fractalshield.py`
+Core MFSU implementation: core/field.py + crypto/cipher.py
+
+LicenseApache License 2.0 — feel free to use, modify and contribute.Made with passion by Miguel Ángel Franco León
+Independent Researcher — Fracta-Axis Project“The same physical law that governs the fractal structure of the universe can also protect our data.”
+---
+
 
 ### Autor
 
 **Miguel Ángel Franco León**  
 Creador de **Tetrahedral Emergent Gravity (TEG)** y **MFSU**
 
-- Paper completo: [Zenodo](https://zenodo.org/records/19479542)
-- GitHub: [Fracta-Axis](https://github.com/Fracta-Axis)
+
 
 

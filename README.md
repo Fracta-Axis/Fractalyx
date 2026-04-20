@@ -23,9 +23,12 @@ Powered by the Unified Fractal-Stochastic Model (MFSU)
 [![MFSU Powered](https://img.shields.io/badge/MFSU-δF%3D0.921-00b8ff?style=for-the-badge)]()
 [![FractalShield](https://img.shields.io/badge/FractalShield-v4-00b8ff?style=for-the-badge)]()
 
----
 
-[![Diagrama explicativo de FractalShiel(https://github.com/Fracta-Axis/Axis/blob/main/image (1).jpg)]
+## Diagrama Explicativo
+
+![Diagrama explicativo de FractalShield — Cómo evoluciona el sistema fractalmente](./image (1).jpg)
+
+*El campo MFSU genera ramificaciones auto-similares. Cada intento de ataque (perturbación) hace que el sistema se vuelva más complejo automáticamente, aumentando el costo geométricamente.*
 
 
 

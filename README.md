@@ -23,6 +23,8 @@ Powered by the Unified Fractal-Stochastic Model (MFSU)
 [![FractalShield](https://img.shields.io/badge/FractalShield-v4-00b8ff?style=for-the-badge)]()
 
 ---
+[![Diagrama explicativo de FractalShield](diagrama-axis-fractalshield.png))
+
 
 ## What is AXIS Vault?
 

@@ -24,12 +24,11 @@ Powered by the Unified Fractal-Stochastic Model (MFSU)
 [![FractalShield](https://img.shields.io/badge/FractalShield-v4-00b8ff?style=for-the-badge)]()
 
 
-## Diagrama Explicativo
+## Explanatory Diagram
 
-![Diagrama explicativo de FractalShield — Cómo evoluciona el sistema fractalmente y cómo se protege internamente](./diagrama-fractalshield.jpg)
+![FractalShield — Self-organizing fractal protection](./diagrama-fractalshield.jpg)
 
-*El campo MFSU genera ramificaciones fractales auto-similares. Cada perturbación (intento de ataque) hace que el sistema se vuelva más complejo automáticamente, aumentando el costo geométricamente.*
-
+*The Unified Fractal-Stochastic Model (MFSU) creates self-similar branches that grow in complexity under perturbation. The real layer (green) is hidden among indistinguishable decoy layers. Every wrong password attempt forces the system to evolve deeper, multiplying the attacker’s computational cost geometrically (3.5× / 7.5× / 15.5×).*
 
 ## What is AXIS Vault?
 

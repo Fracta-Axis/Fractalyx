@@ -26,10 +26,9 @@ Powered by the Unified Fractal-Stochastic Model (MFSU)
 
 ## Diagrama Explicativo
 
-![Diagrama explicativo de FractalShield — Cómo evoluciona el sistema fractalmente](./image (1).jpg)
+![Diagrama explicativo de FractalShield — Cómo evoluciona el sistema fractalmente y cómo se protege internamente](./diagrama-fractalshield.jpg)
 
-*El campo MFSU genera ramificaciones auto-similares. Cada intento de ataque (perturbación) hace que el sistema se vuelva más complejo automáticamente, aumentando el costo geométricamente.*
-
+*El campo MFSU genera ramificaciones fractales auto-similares. Cada perturbación (intento de ataque) hace que el sistema se vuelva más complejo automáticamente, aumentando el costo geométricamente.*
 
 
 ## What is AXIS Vault?

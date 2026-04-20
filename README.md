@@ -1,6 +1,4 @@
 
-
-markdown
 [![AXIS Logo](https://github.com/Fracta-Axis/Axis/blob/main/image-8.jpg)](https://github.com/Fracta-Axis/Axis)
 
 <div align="center">

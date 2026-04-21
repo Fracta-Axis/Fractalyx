@@ -26,10 +26,10 @@ import os
 
 import numpy as np
 
-from axis.core import (
+from fractalyx.core import (
     MAGIC, VERSION, IV_LEN, SALT_LEN, MAC_SALT_LEN, MAC_LEN, BLOCK_SIZE, HEADER_LEN,
 )
-from axis.kdf import derive
+from fractalyx.kdf import derive
 from .keystream import generate
 
 

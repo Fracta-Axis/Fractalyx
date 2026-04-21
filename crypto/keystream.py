@@ -1,5 +1,5 @@
 """
-Generador de keystream MFSU — axis.crypto.keystream
+Generador de keystream MFSU — fractalyx.crypto.keystream
 
 Arquitectura de defensa en profundidad:
 
@@ -23,7 +23,7 @@ import hashlib
 
 import numpy as np
 
-from axis.core import KS_N, step_mfsu
+from fractalyx.core import KS_N, step_mfsu
 
 
 def generate(enc_key: bytes, iv: bytes, length: int) -> np.ndarray:

@@ -1,17 +1,17 @@
 """
-Ejemplo de uso de axis-vault como librería Python.
+Ejemplo de uso de Fractalyx-vault como librería Python.
 
 Ejecutar:
-    pip install axis-vault
+    pip install fractalyx-vault
     python examples/encrypt_file.py
 """
 
 import os
 import time
-from axis.crypto import encrypt, decrypt
-from axis.hash_mfsu import digest
-from axis.totp import generate, verify
-from axis.kdf import derive
+from fractalyx.crypto import encrypt, decrypt
+from fractalyx.hash_mfsu import digest
+from fractalyx.totp import generate, verify
+from fractalyx.kdf import derive
 
 
 def demo_encrypt_decrypt():

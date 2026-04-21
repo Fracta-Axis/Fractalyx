@@ -1,5 +1,5 @@
 """
-Hash Merkle-Damgård Fractal — axis.hash_mfsu.merkle
+Hash Merkle-Damgård Fractal — fractalyx.hash_mfsu.merkle
 
 El mensaje alimenta el campo ψ(x,t) directamente en cada bloque, no
 solo en la condición inicial. Esto significa que cambiar cualquier bloque
@@ -23,7 +23,7 @@ import struct
 
 import numpy as np
 
-from axis.core import DELTA_F, step_mfsu
+from fractalyx.core import DELTA_F, step_mfsu
 
 
 # IV fractal público — fijo para reproducibilidad entre versiones

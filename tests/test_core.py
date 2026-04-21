@@ -1,4 +1,4 @@
-"""Tests del módulo axis.core — física MFSU."""
+"""Tests del módulo fractalyx.core — física MFSU."""
 
 import numpy as np
 import pytest

@@ -1,380 +1,572 @@
 # FYX File Format Specification
 
-**Format Name:** Fractalyx Encrypted Container  
+**Media Type Name:** `application`  
+**Media Subtype Name:** `vnd.fractalyx.fyx`  
+**Required Parameters:** none  
+**Optional Parameters:** none  
+**Encoding Considerations:** Binary  
 **File Extension:** `.fyx`  
-**MIME Type (proposed):** `application/x-fractalyx`  
-**Magic Bytes:** `4D 46 53 55 76 34` (`MFSUv4`)  
-**Current Version:** 4 (FractalShield)  
-**Legacy Version:** 3 (MFSU Standard)  
-**Specification Version:** 1.0.0  
+**Magic Number:** `4D 46 53 55 76 34` (offset 0, 6 bytes) — ASCII `MFSUv4`  
+**Specification Version:** 2.0.0  
 **Date:** 2026-04-21  
-**Author:** Fracta-Axis  
-**Repository:** https://github.com/Fracta-Axis/FractalyxwebLite  
+**Author / Change Controller:** Fracta-Axis  
+**Repository:** https://github.com/Fracta-Axis/Fractalyx  
+**Contact:** https://github.com/Fracta-Axis  
 
 ---
 
-## 1. Overview
+## Abstract
 
-The `.fyx` format is a binary encrypted container produced by **Fractalyx** (FractalyxwebLite), a cryptographic system based on the **Unified Fractal-Stochastic Model (MFSU)**. It stores arbitrary plaintext data encrypted under a password-derived key using a multi-layer architecture that combines fractal-stochastic dynamics with established cryptographic primitives.
-
-The format is designed around three security goals:
-
-- **Confidentiality** — Plaintext is indistinguishable from random noise without the correct password.
-- **Integrity and Authenticity** — Every byte of ciphertext is authenticated via HMAC-SHA3-256 (Encrypt-then-MAC).
-- **Deniability (FractalShield mode)** — The ciphertext contains N independent layers, only one of which holds the real plaintext. An attacker cannot determine which layer is real, or whether decryption succeeded, without exhausting all layers.
-
-Two sub-formats share the `.fyx` extension and are identified by their magic bytes:
-
-| Sub-format | Magic Bytes (ASCII) | Version Byte | Description |
-|---|---|---|---|
-| FractalShield v4 | `MFSUv4` | `0x04` | Multi-layer deniable encryption |
-| MFSU Standard v3 | `MFSUv3` | `0x03` | Single-layer authenticated encryption |
+This document specifies the `.fyx` binary file format used by the Fractalyx encryption system. The format defines a self-identifying, authenticated, password-protected container for arbitrary binary data. Two sub-formats are defined: **FractalShield v4** (primary, multi-layer deniable encryption, magic `MFSUv4`) and **MFSU Standard v3** (legacy, single-layer authenticated encryption, magic `MFSUv3`). All cryptographic material is derived from the **Unified Fractal-Stochastic Model (MFSU)** combined with SHA-3 and HMAC primitives.
 
 ---
 
-## 2. Governing Equation — MFSU
+## 1. Conventions Used in This Document
 
-All cryptographic material in `.fyx` files is derived from numerical integration of the following stochastic partial differential equation (SPDE):
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
 
-```
-∂ψ/∂t = −δF·(−Δ)^(β/2)ψ  +  γ|ψ|²ψ  +  σ·η(x,t)
-```
+All multi-byte integer fields are stored in **big-endian** (network) byte order unless otherwise noted.
 
-**Parameters (fixed, immutable):**
-
-| Symbol | Value | Role |
-|---|---|---|
-| δF | 0.921 | Fractional dissipation coefficient |
-| β | 1.079 | Fractional Laplacian exponent (= 2 − δF) |
-| H | 0.541 | Hurst exponent of fractional Gaussian noise η |
-| df | 2.921 | Fractal dimension of the projected field (= 2 + δF) |
-| γ | 0.921 | Non-linear coupling constant (= δF) |
-| σ | 0.1 | Noise amplitude |
-
-The field ψ(x,t) is complex-valued and discretized over N spatial points. Its time evolution is computed via an Euler scheme with time-constant normalization (divides by `max(|ψ|, 1)` unconditionally, eliminating timing side-channels).
-
-**Fractional Laplacian** is computed spectrally via FFT:
-
-```
-F[(−Δ)^(α/2) f](k) = |k|^α · F[f](k)
-```
-
-**Fractional Gaussian noise** η(x,t) has power spectrum `S(k) ~ |k|^(−(2H+1))`, matching the statistical signature of the cosmic microwave background at H = 0.541.
+The notation `A ‖ B` denotes the concatenation of byte strings A and B.
 
 ---
 
-## 3. Cryptographic Primitives
+## 2. Magic Number and Format Identification
 
-### 3.1 Memory-Hard Key Derivation Function (MFSU-KDF)
+A conforming implementation **MUST** identify `.fyx` files exclusively by inspecting the first 6 bytes of the file (the Magic Number). File extension alone **MUST NOT** be used as the sole identification mechanism.
 
-The KDF derives key material from a password and salt in three phases:
+### 2.1 Registered Magic Numbers
 
-**Phase 1 — Scratchpad fill (sequential, non-parallelizable):**
+| Sub-format | Offset | Length | Hex Value | ASCII | Version Byte (offset 6) |
+|---|---|---|---|---|---|
+| FractalShield v4 | 0 | 6 bytes | `4D 46 53 55 76 34` | `MFSUv4` | `0x04` |
+| MFSU Standard v3 | 0 | 6 bytes | `4D 46 53 55 76 33` | `MFSUv3` | `0x03` |
 
-- Initialise ψ₀ from `SHA3-512(password ‖ 0x00 ‖ salt)`.
-- Evolve ψ for `KDF_M = 256` steps over `KDF_N = 2048` spatial points.
-- Store every state: `scratchpad[0..255]` — requires ≈ 8 MB RAM.
+### 2.2 Detection Algorithm
 
-**Phase 2 — Non-linear mixing (unpredictable scratchpad access):**
+```
+bytes magic_v4 = { 0x4D, 0x46, 0x53, 0x55, 0x76, 0x34 }  // "MFSUv4"
+bytes magic_v3 = { 0x4D, 0x46, 0x53, 0x55, 0x76, 0x33 }  // "MFSUv3"
 
-- Access index is derived from the current field state: `idx = ⌊|Re(ψ[0])| × 10⁹⌋ mod KDF_M`.
-- Without the full scratchpad in memory the mixing sequence cannot be reproduced.
-- This is analogous to scrypt, using the SPDE instead of a hash function.
+if file.length < 7:
+    REJECT — file too short
 
-**Phase 3 — Condensation:**
+if file[0:6] == magic_v4 AND file[6] == 0x04:
+    → FractalShield v4  (primary .fyx format)
+elif file[0:6] == magic_v3 AND file[6] == 0x03:
+    → MFSU Standard v3  (legacy .fyx format)
+else:
+    REJECT — not a valid .fyx file
+```
 
-- Final state → `SHA3-512(state_bytes ‖ h)` → raw key material.
-- Expanded to the requested length via HKDF-Expand (SHA3-256, counter mode).
+A parser **MUST** reject any file whose first 6 bytes do not match one of the registered magic sequences. A parser **MUST** reject any file whose version byte (offset 6) does not match the expected value for the identified sub-format.
 
-**Performance characteristics:**
+---
+
+## 3. Normative Constants
+
+The following constants are **normative**. Any implementation claiming conformance with this specification **MUST** use these exact values. Deviation from any constant produces files that are **not** interoperable with the reference implementation.
+
+### 3.1 MFSU Mathematical Constants
+
+```
+DELTA_F   = 0.921          # Fractional dissipation coefficient
+BETA      = 1.079          # Fractional Laplacian exponent  (= 2.0 - DELTA_F)
+HURST     = 0.541          # Hurst exponent of fractional Gaussian noise
+DF_PROJ   = 2.921          # Fractal dimension of projected field (= 2.0 + DELTA_F)
+GAMMA_NL  = 0.921          # Non-linear coupling constant (= DELTA_F)
+SIGMA_ETA = 0.1            # Noise amplitude
+```
+
+### 3.2 KDF Constants
+
+```
+KDF_N = 2048               # Spatial grid points for KDF field evolution
+KDF_M = 256                # KDF evolution steps (scratchpad depth)
+```
+
+### 3.3 Keystream Constants
+
+```
+KS_N  = 512                # Spatial grid points for keystream field evolution
+```
+
+### 3.4 Format Constants
+
+```
+# FractalShield v4
+MAGIC_V4       = 4D 46 53 55 76 34       # "MFSUv4"  (6 bytes)
+VERSION_V4     = 04                      # 1 byte
+REAL_MAGIC     = 4D 46 53 55 04          # "MFSU\x04" (5 bytes) — real-layer sentinel
+ORDER_SALT_FS  = 4D 46 53 55 5F 4F 52 44 45 52 5F 53 41 4C 54 5F
+                                         # "MFSU_ORDER_SALT_" (16 bytes, fixed)
+
+# MFSU Standard v3
+MAGIC_V3       = 4D 46 53 55 76 33       # "MFSUv3"  (6 bytes)
+VERSION_V3     = 03                      # 1 byte
+IV_LEN         = 16                      # bytes
+SALT_LEN       = 16                      # bytes
+MAC_SALT_LEN   = 16                      # bytes
+MAC_LEN        = 32                      # bytes
+BLOCK_SIZE     = 16                      # bytes (PKCS7 block boundary)
+```
+
+---
+
+## 4. Governing Mathematical Model — MFSU
+
+All cryptographic key material in `.fyx` files is derived from numerical integration of the following Stochastic Partial Differential Equation (SPDE), known as the **Unified Fractal-Stochastic Model (MFSU)**:
+
+```
+dψ/dt = -δF·(-Δ)^(β/2)ψ  +  γ|ψ|²ψ  +  σ·η(x,t)
+```
+
+Where:
+- `ψ(x,t)` is a complex-valued field discretized over N spatial points.
+- `(-Δ)^(β/2)` is the fractional Laplacian operator, computed spectrally: `F[(-Δ)^(α/2)f](k) = |k|^α · F[f](k)`.
+- `η(x,t)` is fractional Gaussian noise with Hurst exponent H = 0.541, power spectrum `S(k) ~ |k|^(-(2H+1))`.
+- `γ|ψ|²ψ` is a cubic non-linear term producing chaotic sensitivity to initial conditions.
+
+### 4.1 Time Integration (Euler Scheme)
+
+```
+ψ_{n+1} = ψ_n + dt · [ -δF·(-Δ)^(β/2)ψ_n  +  γ|ψ_n|²ψ_n  +  σ·η ]
+ψ_{n+1} = ψ_{n+1} / max(|ψ_{n+1}|_∞, 1.0)      ← time-constant normalization
+```
+
+The normalization `max(|ψ|, 1)` is applied **unconditionally** (no conditional branch). Implementations **MUST NOT** use a conditional branch of the form `if max > 1: normalize`, as this introduces a timing side-channel.
+
+---
+
+## 5. Cryptographic Primitives
+
+### 5.1 Memory-Hard Key Derivation Function (MFSU-KDF)
+
+**Inputs:** `password` (UTF-8 string), `salt` (16 bytes, uniformly random), `key_len` (integer, default 96).  
+**Output:** `key_len` bytes of key material.
+
+**Phase 1 — Scratchpad fill:**
+
+```
+h          = SHA3-512(password_utf8 || 0x00 || salt)       // 64 bytes
+ψ_0        = CSPRNG(seed=h[0:32], shape=(KDF_N,), dtype=complex128)
+scratchpad = array shape (KDF_M, KDF_N), dtype=complex128
+
+for step in 0 .. KDF_M-1:
+    ψ = MFSU_STEP(ψ, h, step, dt=0.001)
+    scratchpad[step] = ψ
+```
+
+RAM requirement: `KDF_N × KDF_M × 16 bytes = 2048 × 256 × 16 = 8,388,608 bytes (~8 MB)`.
+
+**Phase 2 — Non-linear mixing:**
+
+```
+ψ_mix = scratchpad[KDF_M - 1]
+
+for step in 0 .. KDF_M-1:
+    idx   = floor(|Re(ψ_mix[0])| × 10⁹) mod KDF_M    // state-dependent, unpredictable
+    ψ_mix = ψ_mix + 0.001 × scratchpad[idx]
+    ψ_mix = ψ_mix / max(|ψ_mix|_∞, 1.0)
+```
+
+**Phase 3 — Condensation and expansion:**
+
+```
+state_bytes = int64(Re(ψ_mix)×10¹⁰).bytes || int64(Im(ψ_mix)×10¹⁰).bytes
+k_raw       = SHA3-512(state_bytes || h)               // 64 bytes
+
+if key_len <= 64:
+    return k_raw[0:key_len]
+
+// HKDF-Expand (SHA3-256, counter mode)
+result = b""; prev = b""; counter = 1
+while len(result) < key_len:
+    prev   = SHA3-256(prev || k_raw || uint8(counter))
+    result = result || prev
+    counter += 1
+return result[0:key_len]
+```
+
+**Performance (reference hardware, Python 3):**
 
 | Metric | Value |
 |---|---|
-| RAM per attempt | ≈ 8 MB |
-| Time per attempt | ≈ 0.5 s |
-| Throughput | ≈ 2 attempts/s |
-| GPU parallelism (RTX 4090, 24 GB) | ≈ 3,000 simultaneous threads |
+| RAM per attempt | ~8 MB |
+| Time per attempt | ~0.5 s |
+| GPU parallelism (RTX 4090 / 24 GB) | ~3,000 threads max |
 
-### 3.2 Keystream Generator (MFSU-KS)
+### 5.2 Keystream Generator (MFSU-KS)
 
-Produces a pseudorandom byte stream of arbitrary length using a two-layer architecture:
+**Inputs:** `derived_key` (64 bytes), `iv` (16 bytes), `length` (integer).  
+**Output:** `length` bytes of pseudorandom keystream.
 
-**Layer 1 — Fractal field (entropy source):**
+```
+h          = SHA3-512(derived_key || iv)
+n_steps    = 48 + (h[0] mod 64)                        // key-dependent: 48..112
+mixer_key  = SHA3-256(derived_key[32:64] || iv)
+ψ          = CSPRNG(seed=h[0:32], shape=(KS_N,), dtype=complex128)
+ψ[0:64]   *= (h[0:64].as_float/255.0 + 0.5)           // amplitude modulation
 
-- Initialise ψ from `SHA3-512(derived_key ‖ iv)`.
-- Number of evolution steps: `n_steps = 48 + (h[0] mod 64)` — key-dependent, between 48 and 112.
-- Extract Re(ψ) and Im(ψ) at each step as raw bytes.
+raw_buf = []
+for step in 0 .. n_steps-1:
+    ψ = MFSU_STEP(ψ, h, step, dt=0.01)
+    raw_buf += (int64(Re(ψ)×10⁴) & 0xFF)              // Layer 1: fractal entropy
+    raw_buf += (int64(Im(ψ)×10⁴) & 0xFF)
+    if len(raw_buf) >= length: break
 
-**Layer 2 — SHA3-256 whitener (uniformity guarantee):**
+// Layer 2: SHA3-256 whitener (REQUIRED for uniformity)
+for i in 0 .. length step 32:
+    block_key  = SHA3-256(mixer_key || uint32_BE(counter))
+    output[i:] = raw_buf[i:i+32] XOR block_key
+    counter   += 1
 
-- XOR each 32-byte block with `SHA3-256(mixer_key ‖ counter)`.
-- Role: mathematical guarantee of byte uniformity (the fractal field alone is not uniform; demonstrated by χ² = 1752 without whitener vs. χ² = 254, p = 0.49 with whitener).
+return output[0:length]
+```
 
-### 3.3 Merkle-Damgård Fractal Hash
+The whitener is **REQUIRED**. Without it, raw fractal output fails uniformity (χ² ≈ 1752, p ≈ 0). With whitener: χ² ≈ 254, p = 0.49.
 
-An internal hash function used for integrity operations:
+### 5.3 PKCS7 Padding
 
-- The message is split into 64-byte blocks.
-- Each block perturbs the field directly: `ψ = ψ + δF · encode(block)`.
-- The field evolves 16 steps per block — changes to any block alter the entire subsequent trajectory.
-- Final digest: `SHA3-512(state_bytes)` — 128 hex characters.
+Block size is `BLOCK_SIZE = 16` bytes.
 
-### 3.4 Authentication — HMAC-SHA3-256 (Encrypt-then-MAC)
+- **Pad:** append `n` bytes of value `n`, where `n = BLOCK_SIZE - (len(data) mod BLOCK_SIZE)`, `1 ≤ n ≤ 16`.
+- **Unpad:** read last byte as `n`. Verify `1 ≤ n ≤ 16` and that the last `n` bytes all equal `n`. If verification fails, implementations **MUST** raise an error.
 
-All `.fyx` files use Encrypt-then-MAC with a MAC key derived independently from the KDF output and a dedicated MAC salt, ensuring that the MAC key and the encryption key are cryptographically separated.
+### 5.4 Authentication — HMAC-SHA3-256 (Encrypt-then-MAC)
+
+All `.fyx` files use the **Encrypt-then-MAC** construction. The MAC **MUST** be verified before any decryption is attempted. Implementations **MUST** use a constant-time comparison function (e.g., `hmac.compare_digest`) to prevent timing oracles.
 
 ---
 
-## 4. Binary Format — FractalShield v4 (`.fyx` primary format)
+## 6. Binary Format — FractalShield v4 (Primary Sub-Format)
 
-### 4.1 File Structure
+### 6.1 Complete File Layout
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  HEADER                                                         │
-│  ├─ MAGIC       6 bytes   "MFSUv4"                              │
-│  ├─ VERSION     1 byte    0x04                                  │
-│  ├─ LEVEL       1 byte    Shield level (1, 2, or 3)             │
-│  ├─ N_LAYERS    1 byte    Number of layers                      │
-│  ├─ SALT_G     16 bytes   Global KDF salt (random)              │
-│  ├─ IV_ORD     16 bytes   IV for order encryption (random)      │
-│  ├─ ORD_LEN     2 bytes   Length of ORDER_ENC (big-endian)      │
-│  └─ ORDER_ENC  variable   Encrypted layer order                 │
-├─────────────────────────────────────────────────────────────────┤
-│  MAC           32 bytes   HMAC-SHA3-256(header ‖ layer_blob)    │
-├─────────────────────────────────────────────────────────────────┤
-│  LAYER_BLOB    variable   N layers, in shuffled order           │
-│  Each layer:                                                    │
-│  ├─ SALT_i     16 bytes   Per-layer KDF salt (random)           │
-│  ├─ IV_i       16 bytes   Per-layer IV (random)                 │
-│  └─ CTEXT_i    L bytes    Encrypted layer payload               │
-└─────────────────────────────────────────────────────────────────┘
+Offset      Size        Field
+──────────  ──────────  ──────────────────────────────────────────────────
+0           6 bytes     MAGIC         4D 46 53 55 76 34  ("MFSUv4")
+6           1 byte      VERSION       04
+7           1 byte      LEVEL         FractalShield level: 01, 02, or 03
+8           1 byte      N_LAYERS      Number of layers: 3, 4, or 5
+9           16 bytes    SALT_G        Global salt (cryptographically random)
+25          16 bytes    IV_ORD        IV for layer-order encryption (random)
+41          2 bytes     ORD_LEN       Big-endian uint16: byte length of ORDER_ENC
+43          ORD_LEN     ORDER_ENC     Encrypted, PKCS7-padded layer order array
+43+OL       32 bytes    MAC           HMAC-SHA3-256(HEADER || LAYER_BLOB)
+75+OL       variable    LAYER_BLOB    N layers in shuffled order (see §6.3)
 ```
 
-### 4.2 Field Definitions
+`OL` = value of `ORD_LEN`.  
+`HEADER` = bytes `[0 .. 43+OL-1]` (all bytes before MAC).
 
-| Field | Offset | Size | Description |
-|---|---|---|---|
-| MAGIC | 0 | 6 | ASCII `MFSUv4` — identifies format |
-| VERSION | 6 | 1 | `0x04` |
-| LEVEL | 7 | 1 | FractalShield level: `0x01`, `0x02`, or `0x03` |
-| N_LAYERS | 8 | 1 | Number of layers: 3, 4, or 5 (equals `len(SHIELD_LEVELS[level])`) |
-| SALT_G | 9 | 16 | Global salt for MAC key derivation; cryptographically random |
-| IV_ORD | 25 | 16 | IV for encrypting the layer order; cryptographically random |
-| ORD_LEN | 41 | 2 | Big-endian uint16: byte length of ORDER_ENC |
-| ORDER_ENC | 43 | ORD_LEN | MFSU-KS encrypted, PKCS7-padded layer order array |
-| MAC | 43 + ORD_LEN | 32 | HMAC-SHA3-256 over `header ‖ layer_blob` |
-| LAYER_BLOB | 75 + ORD_LEN | variable | Concatenated encrypted layers in shuffled order |
+### 6.2 Field Definitions
 
-### 4.3 FractalShield Levels
-
-| Level | Layers (N) | KDF_M per layer | User time | Attacker cost |
+| Field | Offset | Size | Type | Description |
 |---|---|---|---|---|
-| 1 — Standard | 3 | [256, 512, 1024] | ≈ 0.5 s | 3.5× |
-| 2 — Reinforced | 4 | [256, 512, 1024, 2048] | ≈ 0.7 s | 7.5× |
-| 3 — Maximum | 5 | [256, 512, 1024, 2048, 4096] | ≈ 1.3 s | 15.5× |
+| MAGIC | 0 | 6 | bytes | `4D 46 53 55 76 34` — format sentinel |
+| VERSION | 6 | 1 | uint8 | `0x04` — FractalShield version |
+| LEVEL | 7 | 1 | uint8 | Shield level; valid values: `1`, `2`, `3` |
+| N_LAYERS | 8 | 1 | uint8 | Layer count; `3` (L1), `4` (L2), `5` (L3) |
+| SALT_G | 9 | 16 | bytes | Random salt; used to derive MAC key |
+| IV_ORD | 25 | 16 | bytes | Random IV for ORDER_ENC encryption |
+| ORD_LEN | 41 | 2 | uint16-BE | Byte length of ORDER_ENC field |
+| ORDER_ENC | 43 | ORD_LEN | bytes | PKCS7-padded order array, encrypted with MFSU-KS |
+| MAC | 43+OL | 32 | bytes | HMAC-SHA3-256 over `HEADER || LAYER_BLOB` |
+| LAYER_BLOB | 75+OL | variable | bytes | Concatenated encrypted layers |
 
-### 4.4 Layer Payload Structure
+### 6.3 Layer Blob Structure
 
-**Real layer (layer index 0 before shuffling):**
+LAYER_BLOB is the concatenation of N equal-length layer records written in shuffled order:
+
 ```
-PKCS7-padded( REAL_MAGIC(5B) ‖ plaintext )
+Each layer record (total = 32 + L bytes):
+    SALT_i    16 bytes    Per-layer KDF salt (random)
+    IV_i      16 bytes    Per-layer IV (random)
+    CTEXT_i    L bytes    Encrypted layer payload
 ```
-where `REAL_MAGIC = b"MFSU\x04"`.
 
-**Decoy layers:**
-Pseudorandom bytes of the same length, derived from the password and per-layer salt — statistically indistinguishable from the real layer.
+All layer records **MUST** have identical ciphertext length `L`:
+```
+L = (len(LAYER_BLOB) / N_LAYERS) - 32
+```
 
-### 4.5 Layer Order Encryption
+### 6.4 FractalShield Levels
 
-The shuffled order array is encrypted using MFSU-KS with a fixed salt (`MFSU_ORDER_SALT_`, 16 bytes) and `IV_ORD`. Without the correct password, the order cannot be recovered and all layers must be tried.
+| Level | N_LAYERS | KDF_M sequence | User latency | Attacker cost multiplier |
+|---|---|---|---|---|
+| 1 — Standard | 3 | `[256, 512, 1024]` | ~0.5 s | 3.5× |
+| 2 — Reinforced | 4 | `[256, 512, 1024, 2048]` | ~0.7 s | 7.5× |
+| 3 — Maximum | 5 | `[256, 512, 1024, 2048, 4096]` | ~1.3 s | 15.5× |
+
+### 6.5 Real Layer Sentinel
+
+The real layer plaintext is prefixed with `REAL_MAGIC = 4D 46 53 55 04` (`"MFSU\x04"`, 5 bytes) before PKCS7 padding. Decoy layers contain cryptographically random bytes of the same padded length and are statistically indistinguishable from the real layer.
+
+### 6.6 Layer Order Encryption
+
+```
+order_plain = PKCS7( bytes(shuffled_order_array) )
+km_ord      = MFSU-KDF(password, ORDER_SALT_FS, key_len=96)
+ks_ord      = MFSU-KS(km_ord[0:64], IV_ORD, len(order_plain))
+ORDER_ENC   = order_plain XOR ks_ord
+```
+
+### 6.7 MAC Derivation
+
+```
+km_g     = MFSU-KDF(password, SALT_G, key_len=96)
+mac_key  = km_g[0:32]
+MAC      = HMAC-SHA3-256(mac_key, HEADER || LAYER_BLOB)
+```
+
+### 6.8 Per-Layer Encryption
+
+```
+if i == 0 (real layer):
+    data = PKCS7( REAL_MAGIC || plaintext )
+else (decoy layer i):
+    h_d  = SHA3-256(password_bytes || uint8(i) || SALT_i)
+    data = CSPRNG(seed=h_d[0:32], length=L)
+
+km_i    = MFSU-KDF(password, SALT_i, key_len=96)
+ks_i    = MFSU-KS(km_i[0:64], IV_i, len(data))
+CTEXT_i = data XOR ks_i
+```
+
+### 6.9 Decryption Procedure
+
+```
+1. MUST verify file[0:6] == MAGIC_V4 and file[6] == 0x04  — REJECT otherwise
+2. Parse header fields per §6.2
+3. km_g = MFSU-KDF(password, SALT_G, key_len=96); mac_key = km_g[0:32]
+4. Compute mac_c = HMAC-SHA3-256(mac_key, HEADER || LAYER_BLOB)
+5. if NOT constant_time_equal(MAC, mac_c): REJECT with generic error
+6. Decrypt ORDER_ENC per §6.6 to recover shuffled_order
+7. For each layer record in LAYER_BLOB in document order:
+   a. Extract SALT_i, IV_i, CTEXT_i
+   b. Determine logical layer index from shuffled_order
+   c. km_i = MFSU-KDF(password, SALT_i); ks_i = MFSU-KS(km_i[0:64], IV_i, len(CTEXT_i))
+   d. pt = CTEXT_i XOR ks_i
+   e. if pt[0:5] == REAL_MAGIC: return PKCS7_unpad(pt[5:])
+8. REJECT — real layer not found
+```
 
 ---
 
-## 5. Binary Format — MFSU Standard v3 (`.fyx` legacy compatible)
+## 7. Binary Format — MFSU Standard v3 (Legacy Sub-Format)
 
-### 5.1 File Structure
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  MAGIC      6 bytes   "MFSUv3"                                  │
-│  VERSION    1 byte    0x03                                      │
-│  IV        16 bytes   Encryption IV (random)                    │
-│  SALT      16 bytes   KDF salt (random)                         │
-│  MSALT     16 bytes   MAC salt (random, independent of KDF)     │
-│  MAC       32 bytes   HMAC-SHA3-256 (Encrypt-then-MAC)          │
-│  CTEXT      N bytes   PKCS7-padded plaintext XOR keystream      │
-└─────────────────────────────────────────────────────────────────┘
-Header: 87 bytes fixed
-```
-
-### 5.2 Key Derivation
+### 7.1 Complete File Layout
 
 ```
-key_material (96B) = MFSU-KDF(password, salt)
+Offset  Size        Field
+──────  ──────────  ──────────────────────────────────────────────────────
+0       6 bytes     MAGIC         4D 46 53 55 76 33  ("MFSUv3")
+6       1 byte      VERSION       03
+7       16 bytes    IV            Encryption IV (random)
+23      16 bytes    SALT          KDF salt (random)
+39      16 bytes    MSALT         MAC salt (random, independent of SALT)
+55      32 bytes    MAC           HMAC-SHA3-256 (Encrypt-then-MAC)
+87      N bytes     CTEXT         PKCS7-padded plaintext XOR keystream
+```
+
+Total fixed header size: **87 bytes**.
+
+### 7.2 Field Definitions
+
+| Field | Offset | Size | Type | Description |
+|---|---|---|---|---|
+| MAGIC | 0 | 6 | bytes | `4D 46 53 55 76 33` — format sentinel |
+| VERSION | 6 | 1 | uint8 | `0x03` |
+| IV | 7 | 16 | bytes | Random IV; unique per encryption operation |
+| SALT | 23 | 16 | bytes | Random KDF salt; unique per encryption operation |
+| MSALT | 39 | 16 | bytes | Random MAC salt; cryptographically independent of SALT |
+| MAC | 55 | 32 | bytes | HMAC-SHA3-256 over `IV || SALT || MSALT || CTEXT` |
+| CTEXT | 87 | N | bytes | `PKCS7(plaintext) XOR MFSU-KS(enc_key, IV, len)` |
+
+### 7.3 Key Material Derivation
+
+```
+key_material (96B) = MFSU-KDF(password, SALT, key_len=96)
 enc_key      (64B) = key_material[0:64]
 mac_key_base (32B) = key_material[64:96]
-mac_key      (32B) = SHA3-256(mac_key_base ‖ msalt)
+mac_key      (32B) = SHA3-256(mac_key_base || MSALT)
 ```
 
-### 5.3 Encryption
+### 7.4 Encryption
 
 ```
-padded     = PKCS7(plaintext)
-keystream  = MFSU-KS(enc_key, iv, len(padded))
-ciphertext = padded XOR keystream
+padded = PKCS7(plaintext)
+ks     = MFSU-KS(enc_key, IV, len(padded))
+CTEXT  = padded XOR ks
+MAC    = HMAC-SHA3-256(mac_key, IV || SALT || MSALT || CTEXT)
 ```
 
-### 5.4 Authentication
+### 7.5 Decryption Procedure
 
 ```
-auth_data = iv ‖ salt ‖ msalt ‖ ciphertext
-mac       = HMAC-SHA3-256(mac_key, auth_data)
+1. MUST verify len(file) >= 88 and file[0:6] == MAGIC_V3 and file[6] == 0x03
+2. Parse IV, SALT, MSALT, MAC, CTEXT per §7.2
+3. Derive enc_key, mac_key per §7.3
+4. Compute mac_c = HMAC-SHA3-256(mac_key, IV || SALT || MSALT || CTEXT)
+5. if NOT constant_time_equal(MAC, mac_c): REJECT with generic error
+6. ks     = MFSU-KS(enc_key, IV, len(CTEXT))
+7. padded = CTEXT XOR ks
+8. return PKCS7_unpad(padded)
 ```
-
-MAC is verified before any decryption attempt using `hmac.compare_digest` (constant-time).
 
 ---
 
-## 6. Format Detection
+## 8. Security Considerations
 
-An implementation shall determine the sub-format as follows:
+*This section fulfills the REQUIRED security considerations for IANA media type registration per [RFC 6838] §4.6.*
 
-```
-if file[0:6] == b"MFSUv4":
-    → FractalShield v4 (primary .fyx format)
-elif file[0:6] == b"MFSUv3":
-    → MFSU Standard v3 (legacy .fyx format)
-else:
-    → Not a valid .fyx file
-```
+### 8.1 Confidentiality
 
-The version byte at offset 6 provides a secondary check. Both sub-formats may coexist under the `.fyx` extension; implementations must handle both.
+The MFSU-KDF requires approximately 8 MB of working memory and ~0.5 s per derivation attempt on contemporary hardware. This memory-hard property limits GPU-accelerated brute-force attacks to approximately 3,000 parallel threads on a 24 GB GPU, compared to millions per second for direct hash-based KDFs (e.g., PBKDF2-SHA256). The keystream output is computationally indistinguishable from uniformly random bytes when the SHA3-256 whitener layer is applied (χ² ≈ 254, p = 0.49 at 2,048 bytes).
 
----
+### 8.2 Integrity and Authenticity
 
-## 7. Security Properties
+HMAC-SHA3-256 in Encrypt-then-MAC mode protects every byte of ciphertext and all non-secret header fields. A single tampered byte causes MAC verification to fail before any decryption is attempted. Implementations **MUST** use constant-time MAC comparison. Implementations **MUST** return a generic error on authentication failure; error messages **MUST NOT** distinguish between wrong password and corrupted file, as this would create a decryption oracle.
 
-### 7.1 Confidentiality
+### 8.3 Deniability (FractalShield v4 Only)
 
-The MFSU-KDF requires ≈ 8 MB of working memory per derivation attempt. This limits GPU-based brute-force attacks to approximately 3,000 parallel threads on current hardware (RTX 4090, 24 GB VRAM), compared to millions per second for direct hash-based KDFs.
+A `.fyx` v4 file contains N equal-length, statistically identical ciphertext layers. Without the correct password:
 
-### 7.2 Integrity
+- The layer order cannot be recovered (encrypted with MFSU-KS under a fixed salt and random IV).
+- Decoy layers are indistinguishable from the real layer under ciphertext-only analysis.
+- An adversary cannot determine whether a password attempt succeeded or which layer, if any, contains real plaintext.
 
-HMAC-SHA3-256 in Encrypt-then-MAC mode provides authenticated encryption. A single tampered byte causes MAC verification to fail before any decryption is attempted. Error messages are intentionally generic to prevent oracle attacks.
+At Level 3 (5 layers, KDF_M up to 4,096 steps), exhaustive search costs 15.5× the effort of a single decryption.
 
-### 7.3 Deniability (FractalShield v4 only)
+### 8.4 Timing Side-Channels
 
-The file contains N layers of equal size. All layers are statistically identical under ciphertext-only analysis. The attacker does not know which layer, if any, contains the real plaintext, nor whether a given password attempt was correct. At Level 3, breaking the file requires 15.5× the computational cost of a single decryption attempt.
+- Field normalization **MUST** unconditionally compute `ψ / max(|ψ|, 1)`. A conditional branch `if max > 1: normalize` **MUST NOT** be used, as it leaks information about the field magnitude.
+- MAC comparison **MUST** use a constant-time function.
+- Error responses on authentication failure **MUST** follow the same code path regardless of whether failure was caused by a wrong password or file corruption.
 
-### 7.4 Timing Side-Channels
+### 8.5 IV and Salt Uniqueness
 
-Field normalization always divides by `max(|ψ|, 1)` unconditionally, eliminating the conditional branch present in v2 (`if max > 1`). MAC verification uses `hmac.compare_digest` throughout.
+Each encryption operation **MUST** generate fresh values for all IV and salt fields using a Cryptographically Secure Pseudo-Random Number Generator (CSPRNG). Reuse of an (IV, derived_key) pair destroys keystream confidentiality. Reuse of SALT enables KDF pre-computation.
 
-### 7.5 Two-Time Pad Prevention
+### 8.6 Password Strength
 
-Every encryption operation generates a fresh 16-byte IV and 16-byte salt via `os.urandom`. Keystream reuse is computationally infeasible.
+The security of this format is directly bounded by the entropy of the user-supplied password. The memory-hard KDF provides no protection against passwords with negligible entropy. Implementations **SHOULD** reject passwords shorter than 8 characters and **SHOULD** advise users to choose passphrases with high entropy.
 
-### 7.6 Known Limitations
+### 8.7 Formal Audit Status and Limitations
 
-The MFSU cryptographic architecture has not been independently audited. The fractal field serves as an entropy source; SHA3-256 provides the uniformity guarantee. The security of the encryption ultimately rests on the computational hardness of the KDF and the strength of SHA3/HMAC-SHA3-256. Users requiring formally verified cryptography should consider this an experimental format.
+The MFSU cryptographic architecture has **not** been independently audited or formally verified as of the date of this specification. The fractal field functions as a proprietary entropy source; the final security guarantee rests on the established primitives SHA-3 and HMAC-SHA3-256. Users requiring formally audited cryptography **SHOULD** treat this format as experimental until an independent security audit is published. This format **MUST NOT** be used for classified, national-security, or legally mandated data protection without prior independent audit.
 
----
+### 8.8 Downgrade and Version Confusion Attacks
 
-## 8. 2FA Sub-Protocol (MFSU-TOTP)
+Implementations **MUST** reject files with unknown magic bytes or unknown version bytes and **MUST NOT** silently fall back to a weaker version. If a v3 file is presented where v4 is expected, an explicit version mismatch error **MUST** be returned.
 
-Fractalyx includes a TOTP implementation based on the MFSU field. While not encoded in the `.fyx` file itself, it is part of the Fractalyx security suite:
+### 8.9 Applicability and Scope
 
-- Time slot: 30-second windows (`t_slot = floor(unix_time / 30)`).
-- Code derivation: `SHA3-512(secret ‖ t_slot ‖ "MFSU_TOTP_v3")` → initialise ψ → evolve 32 steps → `abs(sum(|ψ|×10⁹)) mod 10⁶`.
-- Sliding window tolerance: codes for `t_slot − 1`, `t_slot`, and `t_slot + 1` are all valid, with replay protection via slot marking.
+This format is intended for general-purpose file encryption by individual users and applications. It is not designed for network transport, streaming decryption, or random-access seeking within encrypted content.
 
 ---
 
 ## 9. Version History
 
-| Version | Magic | Format | Key improvement |
+| Version | Magic (hex) | Sub-format | Key changes |
 |---|---|---|---|
-| v1 | `MFSUv1` | — | Initial proof of concept; no IV, SHA-512 direct KDF |
-| v2 | `MFSUv2` | — | Added IV 16B, separate MAC salt, PKCS7; timing branch present |
-| v3 | `MFSUv3` | MFSU Standard | Memory-hard KDF 8 MB, time-constant normalization, Merkle-Damgård fractal hash |
-| v4 | `MFSUv4` | FractalShield | Multi-layer deniable encryption; encrypted layer order; `.fyx` extension |
+| v1 | `4D 46 53 55 76 31` | Prototype | No IV; KDF = direct SHA-512; no MAC |
+| v2 | `4D 46 53 55 76 32` | Standard | IV 16B; MAC salt separated; PKCS7; timing branch present |
+| v3 | `4D 46 53 55 76 33` | MFSU Standard | Memory-hard KDF ~8 MB; time-constant normalization; Merkle-Damgard fractal hash |
+| v4 | `4D 46 53 55 76 34` | FractalShield | Multi-layer deniable encryption; encrypted layer order; per-layer KDF cost scaling |
+
+Implementations **MUST NOT** produce v1 or v2 output. Implementations **MAY** accept v3 for backward compatibility.
 
 ---
 
-## 10. Implementation Notes
+## 10. IANA Considerations
 
-### 10.1 Reference Implementation
-
-The canonical implementation is `app.py` in the FractalyxwebLite repository. It is written in Python 3 and requires:
+This document requests registration of the following media type per [RFC 6838]:
 
 ```
-streamlit
-numpy
-scipy
-matplotlib
-pandas
-```
-
-### 10.2 Interoperability
-
-Any conforming implementation must:
-
-1. Correctly identify the sub-format from the first 6 bytes.
-2. Verify the MAC before attempting decryption (Encrypt-then-MAC).
-3. Use constant-time comparison for MAC verification.
-4. Treat error messages as generic (do not reveal whether failure was due to wrong password or file corruption).
-5. Reject files with unknown version bytes at offset 6.
-
-### 10.3 File Naming Convention
-
-Encrypted files should be named by appending `.fyx` to the original filename:
-
-```
-document.pdf  →  document.pdf.fyx
-photo.jpg     →  photo.jpg.fyx
-```
-
-The original filename is recovered by stripping the `.fyx` suffix.
-
----
-
-## 11. MFSU Constants (Normative)
-
-The following constants are normative. Any implementation claiming compatibility with `.fyx` must use these exact values:
-
-```
-DELTA_F   = 0.921
-BETA      = 1.079        # 2.0 − DELTA_F
-HURST     = 0.541
-DF_PROJ   = 2.921        # 2.0 + DELTA_F
-GAMMA_NL  = 0.921        # = DELTA_F
-SIGMA_ETA = 0.1
-
-KDF_N     = 2048         # Spatial points for KDF field
-KDF_M     = 256          # KDF evolution steps
-KS_N      = 512          # Spatial points for keystream field
-
-MAGIC_V4        = b"MFSUv4"
-VERSION_V4      = b"\x04"
-REAL_MAGIC      = b"MFSU\x04"
-ORDER_SALT_FS   = b"MFSU_ORDER_SALT_"   # 16 bytes, fixed
-
-MAGIC_V3        = b"MFSUv3"
-VERSION_V3      = b"\x03"
-IV_LEN          = 16
-SALT_LEN        = 16
-MAC_SALT_LEN    = 16
-MAC_LEN         = 32
-BLOCK_SIZE      = 16
+Type name:               application
+Subtype name:            vnd.fractalyx.fyx
+Required parameters:     none
+Optional parameters:     none
+Encoding considerations: binary
+Security considerations: See Section 8 of this specification
+Interoperability
+ considerations:         See Sections 6.9 and 7.5
+Published specification: This document
+                         https://github.com/Fracta-Axis/FractalyxwebLite
+Applications that use
+ this media type:        Fractalyx encryption application;
+                         any conforming implementation of this specification
+Fragment identifier
+ considerations:         none
+Additional information:
+    Magic number(s):     4D 46 53 55 76 34  (offset 0, 6 bytes)  — primary (MFSUv4)
+                         4D 46 53 55 76 33  (offset 0, 6 bytes)  — legacy  (MFSUv3)
+    File extension(s):   .fyx
+    Macintosh file
+     type code(s):       none
+Person & email address
+ to contact for further
+ information:            Fracta-Axis — https://github.com/Fracta-Axis
+Intended usage:          LIMITED USE
+Restrictions on usage:   none
+Author:                  Fracta-Axis
+Change controller:       Fracta-Axis
 ```
 
 ---
 
-## 12. License
+## 11. Implementation Requirements Summary
 
-This specification is released under the **Apache-2.0 License**, consistent with the FractalyxwebLite repository.
+A conforming implementation:
+
+1. **MUST** identify sub-format by magic bytes at offset 0 (§2).
+2. **MUST** reject files with unknown magic bytes or unknown version bytes (§2.2).
+3. **MUST** verify the MAC before any decryption attempt (§5.4, §6.9, §7.5).
+4. **MUST** use constant-time MAC comparison (§8.4).
+5. **MUST** generate fresh CSPRNG values for all IV and salt fields on every encryption (§8.5).
+6. **MUST** apply the SHA3-256 whitener in MFSU-KS (§5.2).
+7. **MUST** use unconditional normalization `ψ / max(|ψ|, 1)` — no conditional branch (§4.1, §8.4).
+8. **MUST** use the exact normative constants defined in §3.
+9. **MUST NOT** reveal in error messages whether failure was due to wrong password or file corruption (§8.2).
+10. **MUST NOT** produce v1 or v2 format output (§9).
 
 ---
 
-*End of FYX File Format Specification v1.0.0*
+## 12. Reference Implementation
+
+The canonical reference implementation is `app.py` in:
+
+```
+https://github.com/Fracta-Axis/Fractalyx
+```
+
+Language: Python 3.10+  
+Dependencies: `streamlit`, `numpy`, `scipy`, `matplotlib`, `pandas`  
+License: Apache-2.0 
+
+---
+
+## 13. License
+
+This specification is released under the **MIT License**.
+
+```
+Copyright (c) 2026 Fracta-Axis
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this specification and associated documentation, to deal in the specification
+without restriction, including without limitation the rights to use, copy,
+modify, merge, publish, distribute, sublicense, and/or sell copies of the
+specification, and to permit persons to whom the specification is furnished
+to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the specification.
+```
+
+---
+
+*End of FYX File Format Specification *

@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 from scipy.stats import chisquare
 
-from axis.crypto import encrypt, decrypt, keystream
-from axis.core import MAGIC, VERSION, HEADER_LEN
+from fractalyx.crypto import encrypt, decrypt, keystream
+from fractalyx.core import MAGIC, VERSION, HEADER_LEN
 
 
 class TestKeystream:

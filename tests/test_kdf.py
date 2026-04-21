@@ -1,9 +1,9 @@
-"""Tests del módulo axis.kdf — KDF memory-hard fractal."""
+"""Tests del módulo fractalyx.kdf — KDF memory-hard fractal."""
 
 import os
 import pytest
 
-from axis.kdf import derive
+from fractalyx.kdf import derive
 
 
 class TestDerive:

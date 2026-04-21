@@ -1,5 +1,5 @@
 """
-KDF Fractal Memory-Hard — axis.kdf.derive
+KDF Fractal Memory-Hard — fractalyx.kdf.derive
 
 Implementa la derivación de clave en 3 fases:
 
@@ -26,7 +26,7 @@ import hashlib
 
 import numpy as np
 
-from axis.core import KDF_N, KDF_M, step_mfsu
+from fractalyx.core import KDF_N, KDF_M, step_mfsu
 
 
 def derive(password: str, salt: bytes, key_len: int = 96) -> bytes:

@@ -1,8 +1,8 @@
-"""Tests del módulo axis.totp — TOTP fractal con ventana anti-replay."""
+"""Tests del módulo fractalyx.totp — TOTP fractal con ventana anti-replay."""
 
 import pytest
-from axis.totp import generate, verify
-from axis.totp.fractal_otp import _code_for_slot
+from fractalyx.totp import generate, verify
+from fractalyx.totp.fractal_otp import _code_for_slot
 
 
 class TestGenerate:

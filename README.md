@@ -1,10 +1,10 @@
 
 
-[![AXIS Logo](https://github.com/Fracta-Axis/Axis/blob/main/image-8.jpg)](https://github.com/Fracta-Axis/Axis)
+[![Fractalyx Logo](https://github.com/Fracta-Axis/Axis/blob/main/image-8.jpg)](https://github.com/Fracta-Axis/Axis)
 
 <div align="center">
 
-# **AXIS Vault**  
+# **Fractalyx Vault**  
 **MFSU-Crypt + FractalShield**  
 **v3.0**
 
@@ -30,7 +30,7 @@ Powered by the Unified Fractal-Stochastic Model (MFSU)
 
 *The Unified Fractal-Stochastic Model (MFSU) creates self-similar branches that grow in complexity under perturbation. The real layer (green) is hidden among indistinguishable decoy layers. Every wrong password attempt forces the system to evolve deeper, multiplying the attacker’s computational cost geometrically (3.5× / 7.5× / 15.5×).*
 
-## What is AXIS Vault?
+## What is Fractalyx Vault?
 
 **AXIS Vault** is a complete symmetric cryptographic system built around a single physically-motivated equation: the **Unified Fractal-Stochastic Model (MFSU)**.
 
@@ -151,7 +151,7 @@ FractalShield module: `fractalshield.py`
 Core MFSU implementation: core/field.py + crypto/cipher.py
 
 LicenseApache License 2.0 — feel free to use, modify and contribute.Made with passion by Miguel Ángel Franco León
-Independent Researcher — Fracta-Axis Project“The same physical law that governs the fractal structure of the universe can also protect our data.”
+Independent Researcher — Fracta-Fractalyx Project“The same physical law that governs the fractal structure of the universe can also protect our data.”
 
 ---
 

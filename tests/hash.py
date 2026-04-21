@@ -1,7 +1,7 @@
-"""Tests del módulo axis.hash_mfsu — hash Merkle-Damgård fractal."""
+"""Tests del módulo fractalyx.hash_mfsu — hash Merkle-Damgård fractal."""
 
 import pytest
-from axis.hash_mfsu import digest
+from fractalyx.hash_mfsu import digest
 
 
 class TestDigest:

@@ -1,5 +1,5 @@
 """
-TOTP Fractal con ventana deslizante anti-replay — axis.totp.fractal_otp
+TOTP Fractal con ventana deslizante anti-replay — fractalyx.totp.fractal_otp
 
 Genera códigos TOTP de 6 dígitos basados en la evolución del campo MFSU.
 
@@ -22,7 +22,7 @@ import time
 
 import numpy as np
 
-from axis.core import TOTP_WINDOW, TOTP_STEPS, TOTP_DOMAIN, step_mfsu
+from fractalyx.core import TOTP_WINDOW, TOTP_STEPS, TOTP_DOMAIN, step_mfsu
 
 
 def _code_for_slot(secret: str, t_slot: int) -> str:

@@ -36,19 +36,25 @@ Powered by the Unified Fractal-Stochastic Model (MFSU)
 
 All primitives — KDF, stream cipher, hash, TOTP and the revolutionary **FractalShield** defense — derive from the same SPDE:
 
-# Ecuación del Proyecto
+# Model Equation
 
-La evolución temporal del campo ψ(x,t) está definida por la siguiente ecuación diferencial parcial fraccionaria estocástica:
+The temporal evolution of the field ψ(x,t) is defined by the following stochastic fractional partial differential equation:
 
 dψ/dt = -δF (-Δ)^(β/2) ψ + γ |ψ|² ψ + σ η(x,t)
 
-Valores de los parámetros:
--------------------------
-• Coeficiente de Difusión (δF) = 0.921
-• Parámetro Fraccionario (β)   = 1.079
-• Acoplamiento No Lineal (γ)   = 0.921 (igual a δF)
-• Exponente de Hurst (H)       = 0.541
+Model Parameters:
+-----------------
+• Diffusion Coefficient (δF): 0.921
+• Fractional Power (β): 1.079
+• Nonlinear Coupling (γ): 0.921 (equal to δF)
+• Hurst Exponent (H): 0.541
 
+Term Definitions:
+-----------------
+• dψ/dt: Time derivative of the field.
+• (-Δ)^(β/2): Fractional Laplacian operator, representing anomalous diffusion.
+• γ |ψ|² ψ: Nonlinear reaction term.
+• σ η(x,t): Spatiotemporal stochastic noise.
 
 
 ### The Star Innovation: FractalShield

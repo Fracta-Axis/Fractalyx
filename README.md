@@ -36,32 +36,26 @@ Powered by the Unified Fractal-Stochastic Model (MFSU)
 
 All primitives — KDF, stream cipher, hash, TOTP and the revolutionary **FractalShield** defense — derive from the same SPDE:
 
-# Stochastic Partial Differential Equation Project
-
-This project models the following **Stochastic Partial Differential Equation (SPDE)**:
+# Fractalyx
 
 $$\frac{\partial \psi}{\partial t} = -\delta_F (-\Delta)^{\beta/2} \psi + \gamma |\psi|^2 \psi + \sigma \eta(x,t)$$
 
-## Model Parameters
+### Model Parameters:
+*   **Diffusion Coefficient ($\delta_F$):** 0.921
+*   **Fractional Power ($\beta$):** 1.079
+*   **Nonlinear Coupling ($\gamma$):** 0.921 (equal to $\delta_F$)
+*   **Hurst Exponent ($H$):** 0.541
 
-The system is defined with the following parameters:
-
-*   **$\delta_F$ (Fractional Diffusion Coefficient):** $0.921$
-*   **$\beta$ (Fractional Laplacian Power):** $1.079$
-*   **$\gamma$ (Nonlinear Interaction Strength):** $\gamma = \delta_F = 0.921$
-*   **$H$ (Hurst Parameter):** $0.541$
-*   **$\sigma$ (Noise Intensity):** *[Insert your $\sigma$ value here]*
-*   **$\eta(x,t)$:** Stochastic noise term
-
-## Equation Components
-*   **Left side:** Time evolution of the field $\psi(x,t)$.
-*   **$-\delta_F (-\Delta)^{\beta/2} \psi$:** Fractional diffusion (representing anomalous diffusion).
-*   **$\gamma |\psi|^2 \psi$:** Nonlinear, cubic focusing/defocusing term.
-*   **$\sigma \eta(x,t)$:** Gaussian white 
+### Term Definitions:
+*   **$\partial \psi / \partial t$:** Time derivative of the field.
+*   **$(-\Delta)^{\beta/2}$:** Fractional Laplacian operator, representing anomalous diffusion.
+*   **$\gamma |\psi|^2 \psi$:** Nonlinear reaction term.
+*   **$\sigma \eta(x,t)$:** Spatiotemporal stochastic noise.
 
 ---
 ## The Star Innovation: FractalShield
-The first documented **oracle-free**, geometrically escalating layered encryption for offline.
+The first documented **oracle-free**, geometrically escalating layered encryption for offline files.
+
 
 - No verification oracle (attacker never knows if the password is correct until they check every layer)
 - Attacker cost grows **3.5× / 7.5× / 15.5×** per protection level

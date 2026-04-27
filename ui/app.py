@@ -5,9 +5,7 @@ UI opcional. Requiere: pip install fractalyx-vault[ui]
 Para ejecutar: streamlit run -m axis.ui.app
                o: python -m fractalyx.ui
 
-Contiene las mismas 5 pestañas del fracts_vault.py original,
-refactorizadas para usar la API del paquete en lugar de funciones locales.
-"""
+""
 
 from __future__ import annotations
 
@@ -26,7 +24,7 @@ try:
 except ImportError as exc:
     raise ImportError(
         "La UI de Streamlit requiere dependencias extras.\n"
-        "Instala con: pip install axis-vault[ui]"
+        "Instala con: pip install fractalyx-vault[ui]"
     ) from exc
 
 from fractalyx.crypto import encrypt, decrypt
@@ -34,7 +32,7 @@ from fractalyx.hash_mfsu import digest as mfsu_hash
 from fractalyx.totp import generate as mfsu_totp
 from fractalyx.kdf import derive as mfsu_kdf
 from fractalyx.crypto.keystream import generate as mfsu_keystream
-from axis.core import (
+from fractalyx.core import (
     DELTA_F, BETA, HURST, DF_PROJ,
     KDF_N, KDF_M, KS_N,
     step_mfsu,
@@ -144,7 +142,7 @@ def run_security_tests(password: str) -> tuple[list, plt.Figure]:
     results.append(("Two-time pad eliminado", not np.array_equal(ks_a, ks_b), "IV+salt únicos → keystreams distintos"))
 
     # T5: MAC anti-tampering
-    msg = b"test integridad MFSU v3"
+    msg = b"test integridad Fractalyx v4"
     blob = encrypt(msg, password)
     ta = bytearray(blob)
     ta[90] ^= 0xFF
@@ -277,8 +275,8 @@ def main() -> None:
         st.markdown(f"**Pasos:** `M={KDF_M}`")
         st.markdown(f"**Scratchpad:** `{KDF_N*KDF_M*16/1024**2:.0f} MB`")
         st.divider()
-        st.markdown("### 📦 Formato .fracta v3")
-        st.code("MAGIC 6B + VERSION 1B\nIV 16B + SALT 16B\nMSALT 16B + MAC 32B\nCTEXT NB", language=None)
+        st.markdown("### 📦 Formato .fyx v4")
+        st.code("MAGIC  6B  'MFSUv4'\nVER    1B  0x04\nLEVEL  1B  1/2/3\nN      1B  capas (3/4/5)\nSALT  16B  global\nIV_ORD 16B orden IV\nORD_LEN 2B\nORDER  NB  mapa cifrado\nMAC   32B  HMAC-SHA3-256\nLAYERS NB  N capas iguales", language=None)
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🔒 Cifrar / Descifrar", "🔑 Hash Merkle-DF",
@@ -287,7 +285,7 @@ def main() -> None:
 
     # ── Tab 1: Cifrado ────────────────────────────────────────────────────
     with tab1:
-        st.subheader("Cifrado MFSU v3 — Memory-Hard + Anti-Timing")
+        st.subheader("Cifrado Fractalyx .fyx v4 — FractalShield + Memory-Hard")
         st.info("⚡ El KDF tarda ~0.5 s intencionalmente. Scratchpad 8 MB hace GPU-cracking ~250× más difícil.")
         c1, c2 = st.columns(2)
 
@@ -295,7 +293,7 @@ def main() -> None:
             st.markdown("#### 🔐 Cifrar")
             f_enc = st.file_uploader("Archivo", key="enc")
             p_enc = st.text_input("Contraseña", type="password", key="pe")
-            if st.button("Cifrar con MFSU v3", use_container_width=True, type="primary"):
+            if st.button("Cifrar con Fractalyx .fyx v4", use_container_width=True, type="primary"):
                 if not f_enc or not p_enc:
                     st.warning("Necesitas archivo y contraseña.")
                 else:
@@ -310,19 +308,19 @@ def main() -> None:
                             m1.metric("Original", f"{len(data):,} B")
                             m2.metric("Cifrado", f"{len(blob):,} B")
                             m3.metric("Overhead", f"{len(blob)-len(data)} B")
-                            st.download_button("⬇️ Descargar .fracta", data=blob,
-                                file_name=f_enc.name + ".fracta", mime="application/octet-stream",
+                            st.download_button("⬇️ Descargar .fyx", data=blob,
+                                file_name=f_enc.name + ".fyx", mime="application/vnd.fractalyx.fyx",
                                 use_container_width=True)
                         except Exception as e:
                             st.error(f"Error: {e}")
 
         with c2:
             st.markdown("#### 🔓 Descifrar")
-            f_dec = st.file_uploader("Archivo .fracta", key="dec")
+            f_dec = st.file_uploader("Archivo .fyx", key="dec")
             p_dec = st.text_input("Contraseña", type="password", key="pd")
-            if st.button("Descifrar con MFSU v3", use_container_width=True):
+            if st.button("Descifrar con Fractalyx .fyx v4", use_container_width=True):
                 if not f_dec or not p_dec:
-                    st.warning("Necesitas .fracta y contraseña.")
+                    st.warning("Necesitas .fyx y contraseña.")
                 else:
                     with st.spinner("Verificando MAC + reconstruyendo ψ…"):
                         blob = f_dec.read()
@@ -332,7 +330,7 @@ def main() -> None:
                             elapsed = time.time() - t0
                             st.success(f"✅ Descifrado en {elapsed:.2f} s — {len(pt):,} B")
                             st.download_button("⬇️ Descargar original", data=pt,
-                                file_name=f_dec.name.replace(".fracta", ""),
+                                file_name=f_dec.name.replace(".fyx", ""),
                                 mime="application/octet-stream", use_container_width=True)
                         except ValueError as e:
                             st.error(f"❌ {e}")
@@ -427,3 +425,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+   

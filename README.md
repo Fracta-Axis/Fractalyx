@@ -203,8 +203,8 @@ The following data reflects the analysis of 10 independent (Key, IV) pairs, each
 
 ### 📂 Reproducibility & Audit
 The raw evidence for these tests is provided in this repository for public audit:
-* [`nist_sts_v40_final.csv`](./nist_sts_v40_final.csv): Comprehensive pass/fail summary and KS p-values.
-* [`nist_sts_v40_pvalues.csv`](./nist_sts_v40_pvalues.csv): Individual p-values for each parameter and test run.
+* [`nist_sts_v40_final.csv`](./TESTCSV/nist_sts_v40_final.csv): Comprehensive pass/fail summary and KS p-values.
+* [`nist_sts_v40_pvalues.csv`](.TESTCSV/nist_sts_v40_pvalues.csv): Individual p-values for each parameter and test run.
 
 > **Scientific Note:** "The geometry of the MFSU equation ensures that entropy is preserved through empirical injectivity, providing a robust foundation for oracle-free verification and offline brute-force resistance." — *FractalShield v4.0 Technical Paper*.
 
